@@ -1,0 +1,1 @@
+module.exports=['XRP20','XRP20','<address>']
