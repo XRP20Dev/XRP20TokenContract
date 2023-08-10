@@ -206,6 +206,7 @@ contract XRP20Token is Context, IERC20Metadata, Ownable {
   string private _symbol;
   uint8 private constant _decimals = 18;
   uint256 public constant hardCap = 100_000_000_000 * (10 ** _decimals); //100 billion
+  mapping(address => bool) public isWhitelisted;
 
   /**
    * @dev Contract constructor.
@@ -217,6 +218,15 @@ contract XRP20Token is Context, IERC20Metadata, Ownable {
     _name = name_;
     _symbol = symbol_;
     _mint(_to, hardCap);
+  }
+
+  /**
+   * @dev change whitelist status of a particular address
+   * @param _address address of the user to change status
+   * @param _staus bool value for the status
+   */
+  function whitelistAddress(address _address, bool _staus) external onlyOwner {
+    isWhitelisted[_address] = _staus;
   }
 
   /**
@@ -267,8 +277,8 @@ contract XRP20Token is Context, IERC20Metadata, Ownable {
    * @return A boolean value indicating whether the transfer was successful.
    */
   function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
-    uint256 burnTax = amount / 1000; // 0.1% of the transfer amount
-    _burn(_msgSender(), burnTax);
+    uint256 burnTax = isWhitelisted[_msgSender()] || isWhitelisted[recipient] ? 0 : (amount / 1000);
+    if (burnTax > 0) _burn(_msgSender(), burnTax);
     _transfer(_msgSender(), recipient, amount - burnTax);
     return true;
   }
@@ -302,10 +312,9 @@ contract XRP20Token is Context, IERC20Metadata, Ownable {
    * @return A boolean value indicating whether the transfer was successful.
    */
   function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
-    uint256 burnTax = amount / 1000; // 0.1% of the transfer amount
-    _burn(sender, burnTax);
+    uint256 burnTax = isWhitelisted[sender] || isWhitelisted[recipient] ? 0 : (amount / 1000);
+    if (burnTax > 0) _burn(sender, burnTax);
     _transfer(sender, recipient, amount - burnTax);
-
     uint256 currentAllowance = _allowances[sender][_msgSender()];
     require(currentAllowance >= amount, 'ERC20: transfer amount exceeds allowance');
     unchecked {
