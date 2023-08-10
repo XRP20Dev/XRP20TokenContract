@@ -223,10 +223,10 @@ contract XRP20Token is Context, IERC20Metadata, Ownable {
   /**
    * @dev change whitelist status of a particular address
    * @param _address address of the user to change status
-   * @param _staus bool value for the status
+   * @param _status bool value for the status
    */
-  function whitelistAddress(address _address, bool _staus) external onlyOwner {
-    isWhitelisted[_address] = _staus;
+  function whitelistAddress(address _address, bool _status) external onlyOwner {
+    isWhitelisted[_address] = _status;
   }
 
   /**
